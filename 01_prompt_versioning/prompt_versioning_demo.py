@@ -41,7 +41,10 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # MLflow experiment
 EXPERIMENT_NAME = "llmops-prompt-versioning"
-mlflow.set_tracking_uri("mlruns")
+# Always write to mlruns at the repo root, regardless of which
+# directory this script is executed from.
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+mlflow.set_tracking_uri(os.path.join(REPO_ROOT, "mlruns"))
 mlflow.set_experiment(EXPERIMENT_NAME)
 
 
