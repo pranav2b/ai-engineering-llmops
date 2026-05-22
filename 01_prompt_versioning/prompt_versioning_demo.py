@@ -1,27 +1,25 @@
 """
-=============================================================
-  LLMOps Demo #1 — Prompt Versioning with MLflow
-=============================================================
-Concept:
-    Prompts are code. Just like software, they evolve over time.
-    This demo shows how to:
-      1. Store and version prompts as structured artifacts in MLflow
-      2. Run each version against the same test input
-      3. Track quality metrics (tone, length, latency, cost)
-      4. Compare versions side-by-side
-      5. "Deploy" the best version and roll back if needed
+Demo 01 - Prompt Versioning with MLflow
+Prompts are not static configuration. They evolve, regress, and need to be
+audited just like application code. This script demonstrates how to:
+
+    1. Store prompt versions as structured artifacts in MLflow
+    2. Run each version against the same fixed test inputs
+    3. Track quality metrics: empathy, actionability, format compliance
+    4. Track operational metrics: latency, token usage, estimated cost
+    5. Compare versions with a weighted composite score
+    6. Simulate promoting a version to production and rolling it back
 
 Setup:
-    pip install openai mlflow python-dotenv
-    Set OPENAI_API_KEY in a .env file or as an env variable.
+    pip install -r requirements.txt
+    Add OPENAI_API_KEY to a .env file in this directory.
 
 Run:
     python prompt_versioning_demo.py
 
-Then open the MLflow UI:
+View results:
     mlflow ui
-    → http://127.0.0.1:5000
-=============================================================
+    Open http://127.0.0.1:5000 and select experiment: llmops-prompt-versioning
 """
 
 import os
@@ -43,9 +41,9 @@ mlflow.set_tracking_uri("mlruns")          # local folder; swap for remote URI i
 mlflow.set_experiment(EXPERIMENT_NAME)
 
 
-# =============================================================
+# ---
 # SECTION 1 — Define prompt versions
-# =============================================================
+# ---
 # Each version is a dict that captures everything needed to
 # reproduce a run: system prompt, user template, and model params.
 # Think of this as your "prompt registry".
@@ -104,9 +102,9 @@ PROMPT_VERSIONS = {
 }
 
 
-# =============================================================
+# ---
 # SECTION 2 — Test inputs (fixed test set for fair comparison)
-# =============================================================
+# ---
 TEST_INPUTS = [
     "My order hasn't arrived in 2 weeks and I want a refund immediately!",
     "I was charged twice for the same item. This is unacceptable.",
@@ -114,10 +112,10 @@ TEST_INPUTS = [
 ]
 
 
-# =============================================================
+# ---
 # SECTION 3 — Simple scoring heuristics
 # (In a real pipeline, use an LLM-as-judge or human eval)
-# =============================================================
+# ---
 
 def score_empathy(response: str) -> float:
     """Check for empathetic language keywords."""
@@ -153,9 +151,9 @@ def estimate_cost_usd(prompt_tokens: int, completion_tokens: int) -> float:
     return (prompt_tokens * 5 + completion_tokens * 15) / 1_000_000
 
 
-# =============================================================
+# ---
 # SECTION 4 — Run a single prompt version against one input
-# =============================================================
+# ---
 
 def run_prompt(prompt_cfg: dict, user_message: str) -> dict:
     """
@@ -195,9 +193,9 @@ def run_prompt(prompt_cfg: dict, user_message: str) -> dict:
     }
 
 
-# =============================================================
+# ---
 # SECTION 5 — Log everything to MLflow
-# =============================================================
+# ---
 
 def run_and_log_version(prompt_cfg: dict):
     """
@@ -207,7 +205,7 @@ def run_and_log_version(prompt_cfg: dict):
     version = prompt_cfg["version"]
     print(f"\n{'='*60}")
     print(f"  Running prompt {version}: {prompt_cfg['description']}")
-    print(f"{'='*60}")
+    print("-" * 60)
 
     all_results = []
 
@@ -284,9 +282,9 @@ def run_and_log_version(prompt_cfg: dict):
     return all_results
 
 
-# =============================================================
+# ---
 # SECTION 6 — Compare versions and pick the winner
-# =============================================================
+# ---
 
 def compare_versions(summary: dict):
     """
@@ -295,7 +293,7 @@ def compare_versions(summary: dict):
     """
     print(f"\n{'='*70}")
     print("  VERSION COMPARISON SUMMARY")
-    print(f"{'='*70}")
+    print("-" * 70)
     header = f"{'Version':<8} {'Latency':>9} {'Tokens':>8} {'Cost$':>9} {'Empathy':>9} {'Action':>9} {'Format':>8} {'SCORE':>8}"
     print(header)
     print("-" * 70)
@@ -322,23 +320,23 @@ def compare_versions(summary: dict):
         )
 
     winner = max(scores, key=scores.get)
-    print(f"\n  🏆  Winner: {winner}  (composite score: {scores[winner]:.3f})")
+    print(f"\n  Winner: {winner}  (composite score: {scores[winner]:.3f})")
     print(f"      → This is the version you would DEPLOY to production.\n")
     return winner
 
 
-# =============================================================
+# ---
 # SECTION 7 — Demo: Deploy & Rollback simulation
-# =============================================================
+# ---
 
 def demo_deploy_rollback(winner: str):
     """
     Simulates tagging a version as 'production' in MLflow,
     and rolling back to the previous version.
     """
-    print(f"{'='*60}")
+    print("-" * 60)
     print("  DEPLOY & ROLLBACK DEMO")
-    print(f"{'='*60}")
+    print("-" * 60)
 
     # In a real system you'd use mlflow.register_model() +
     # MlflowClient().transition_model_version_stage().
@@ -365,7 +363,7 @@ def demo_deploy_rollback(winner: str):
     print(f"  Previous  : {prev or 'none'}")
 
     # Simulate a rollback
-    print(f"\n  ⚠  Simulating production issue — rolling back...")
+    print(f"\n  Simulating production issue — rolling back...")
     registry["production"] = prev or list(PROMPT_VERSIONS.keys())[0]
     registry["history"].append(winner)
     with open(registry_path, "w") as f:
@@ -375,9 +373,9 @@ def demo_deploy_rollback(winner: str):
     print(f"  Registry state: {json.dumps(registry, indent=4)}")
 
 
-# =============================================================
+# ---
 # MAIN
-# =============================================================
+# ---
 
 if __name__ == "__main__":
     print("\n" + "=" * 60)
@@ -411,7 +409,7 @@ if __name__ == "__main__":
     demo_deploy_rollback(winner)
 
     print("\n" + "=" * 60)
-    print("  ✅  All runs logged to MLflow.")
+    print("  All runs logged to MLflow.")
     print("  Run:  mlflow ui")
     print("  Then open: http://127.0.0.1:5000")
     print("  Filter by experiment: llmops-prompt-versioning")

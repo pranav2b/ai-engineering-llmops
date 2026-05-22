@@ -1,82 +1,108 @@
-# LLMOps Demo #1 — Prompt Versioning with MLflow
+# Demo 01 — Prompt Versioning with MLflow
 
-## What this demo teaches
-Prompts are code. They evolve, break, and need rollbacks — just like software.
-This demo shows how to version prompts like a production engineering team would.
+## Overview
 
-## Concepts covered
-| Concept | How it's shown |
-|---|---|
-| Prompt versioning | 3 explicit versions (v1→v2→v3) of a customer support prompt |
-| Structured params | model, temperature, max_tokens tracked per version |
-| Commit messages | Each version has a reason for the change |
-| Quality metrics | empathy score, actionability score, format compliance |
-| Operational metrics | latency, token usage, estimated cost |
-| MLflow tracking | Every run logged with params + metrics + artifact |
-| Version comparison | Side-by-side table with composite score |
-| Deploy + Rollback | Simulate promoting and reverting a production prompt |
+Prompts are not static configuration. They evolve, regress, and need to be
+audited just like application code. This demo shows how to treat prompts as
+versioned artifacts: track every change, measure the impact on output quality,
+and promote or roll back versions with confidence.
+
+---
+
+## Concepts Covered
+
+| Concept | How it is demonstrated |
+|---------|----------------------|
+| Prompt versioning | Three explicit versions of a customer support prompt, v1 through v3 |
+| Structured parameters | Model, temperature, and max_tokens tracked per version |
+| Commit messages | Each version documents the reason for the change |
+| Quality metrics | Empathy score, actionability score, format compliance |
+| Operational metrics | Latency, token usage, estimated cost per run |
+| MLflow tracking | Every run logged with full params, metrics, and artifacts |
+| Version comparison | Side-by-side table with a weighted composite score |
+| Deploy and rollback | Simulates promoting a version to production and reverting it |
+
+---
 
 ## Setup
+
 ```bash
-pip install openai mlflow python-dotenv
+pip install -r requirements.txt
+echo "OPENAI_API_KEY=sk-..." > .env
 ```
 
-Create a `.env` file:
-```
-OPENAI_API_KEY=sk-...
-```
+---
 
-## Run the demo
+## Running the Demo
+
 ```bash
 python prompt_versioning_demo.py
 ```
 
-## View results in MLflow UI
+Then open the MLflow UI to inspect results:
+
 ```bash
 mlflow ui
-# Open http://127.0.0.1:5000
-# Go to experiment: llmops-prompt-versioning
+# Navigate to http://127.0.0.1:5000
+# Select experiment: llmops-prompt-versioning
 ```
 
-## What to show in class / on YouTube
+---
 
-### Step 1 — Show the 3 prompt versions side by side
-- v1: one-liner, vague
-- v2: structured goals, better tone rules
-- v3: strict output format with SLA language
+## What to Show in Class
 
-**Key point:** "Same task, same model — but the prompt completely changes the output quality."
+### Step 1 — Walk through the three prompt versions
+
+Show v1 (one-liner, vague), v2 (structured goals, tone rules), and v3
+(strict output format with SLA language) side by side in the script.
+
+Key point: same task, same model, same test input — the prompt is the
+only variable, and it completely changes output quality.
 
 ### Step 2 — Run the script
-Watch it hit the API for each version × each test case.
-Point out the live metrics printing.
 
-### Step 3 — Open MLflow UI
-- Show the Experiment view with all runs grouped
-- Click into a run: show params, metrics, and the JSON artifact
-- Use "Compare runs" to show a bar chart of empathy_score across v1/v2/v3
-- Show how v3 format_score jumps to 1.0
+Watch each version run against three fixed test cases. Point out the
+metrics printing live: latency, tokens, cost, empathy score, action score.
 
-### Step 4 — Composite scoring
-Walk through the weighted formula:
+### Step 3 — Open the MLflow UI
+
+- Show the Experiments view with all runs grouped by version tag.
+- Click into a single run and show params, metrics, and the JSON artifact.
+- Use Compare Runs to display a bar chart of empathy_score across v1, v2, v3.
+- Show how format_score jumps to 1.0 only for v3.
+
+### Step 4 — Walk through the composite scoring formula
+
 ```
-score = 0.35×empathy + 0.30×action + 0.20×format + 0.15×(speed bonus)
-```
-"This is how teams decide which version to promote — not gut feel."
-
-### Step 5 — Deploy & Rollback
-Show the registry JSON update.
-Simulate a rollback and ask: "What happens in production if v3 starts hallucinating?"
-
-## File structure
-```
-prompt_versioning/
-├── prompt_versioning_demo.py   # Main demo script
-├── README.md                   # This file
-└── mlruns/                     # Auto-created by MLflow
-    └── ...
+score = 0.35 x empathy + 0.30 x action + 0.20 x format + 0.15 x speed_bonus
 ```
 
-## Next demo in the playlist
-**Demo #2 — LLM Observability with MLflow Tracing**
-Instrument a RAG pipeline and watch every call traced in real time.
+This is how teams decide which version to promote rather than relying on
+intuition. The weights are adjustable based on business priorities.
+
+### Step 5 — Deploy and rollback simulation
+
+Show the registry JSON being updated on deploy and reverted on rollback.
+Discussion point: what happens in production if v3 starts producing
+malformed output at scale?
+
+---
+
+## File Structure
+
+```
+01_prompt_versioning/
+    prompt_versioning_demo.py    Main demo script
+    requirements.txt             Python dependencies
+    README.md                    This file
+    mlruns/                      Auto-created by MLflow on first run
+```
+
+---
+
+## Next Demo
+
+Demo 02 — LLM Evaluations
+
+Build an automated evaluation harness with LLM-as-judge scoring.
+Measure factuality, tone, and format compliance across model versions.
