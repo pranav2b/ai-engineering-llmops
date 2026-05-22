@@ -12,7 +12,7 @@ audited just like application code. This script demonstrates how to:
 
 Setup:
     pip install -r requirements.txt
-    Add OPENAI_API_KEY to a .env file in this directory.
+    Add OPENAI_API_KEY to a .env file in the repo root directory.
 
 Run:
     python prompt_versioning_demo.py
@@ -27,17 +27,21 @@ import json
 import time
 import mlflow
 import mlflow.artifacts
+from pathlib import Path
 from openai import OpenAI
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from the repo root so all demos share one credentials file.
+# Works whether you run this script from the repo root or from inside
+# the 01_prompt_versioning folder.
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env")
 
-# ── OpenAI client ─────────────────────────────────────────
+# OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# ── MLflow experiment ─────────────────────────────────────
+# MLflow experiment
 EXPERIMENT_NAME = "llmops-prompt-versioning"
-mlflow.set_tracking_uri("mlruns")          # local folder; swap for remote URI in prod
+mlflow.set_tracking_uri("mlruns")
 mlflow.set_experiment(EXPERIMENT_NAME)
 
 
