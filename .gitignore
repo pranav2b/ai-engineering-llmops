@@ -36,3 +36,4 @@ Thumbs.db
 /tmp/
 *.tmp
 prompt_registry.json
+tmp_artifacts/

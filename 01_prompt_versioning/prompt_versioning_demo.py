@@ -259,7 +259,9 @@ def run_and_log_version(prompt_cfg: dict):
                 "test_input":    test_input,
                 "model_output":  result["output"],
             }
-            artifact_path = f"/tmp/prompt_{version}_test{i}.json"
+            tmp_dir = os.path.join(os.path.dirname(__file__), "tmp_artifacts")
+            os.makedirs(tmp_dir, exist_ok=True)
+            artifact_path = os.path.join(tmp_dir, f"prompt_{version}_test{i}.json")
             with open(artifact_path, "w") as f:
                 json.dump(artifact_data, f, indent=2)
             mlflow.log_artifact(artifact_path, artifact_path="prompt_artifacts")
@@ -346,7 +348,7 @@ def demo_deploy_rollback(winner: str):
     # MlflowClient().transition_model_version_stage().
     # Here we simulate with a simple JSON file to keep it clear.
 
-    registry_path = "/tmp/prompt_registry.json"
+    registry_path = os.path.join(os.path.dirname(__file__), "prompt_registry.json")
 
     # Load or create registry
     if os.path.exists(registry_path):
